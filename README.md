@@ -18,22 +18,57 @@ plus [Pillow](https://pillow.readthedocs.io/).
 
 ## Quick start
 
-With **docker compose** (simplest):
+### From Docker Hub (no clone, no build)
+
+The fastest path — pull the prebuilt image and run it:
 
 ```bash
-API_SECRET_KEY=change-me docker compose up -d --build
+# 1. Pull the image
+docker pull inovector/image-converter:latest
+
+# 2. Run it
+docker run -d --rm \
+  -p 8000:8000 \
+  -e API_SECRET_KEY=change-me \
+  --name image-converter \
+  inovector/image-converter:latest
 ```
 
-Or with **make**:
+> Step 1 is optional — `docker run` will pull the image automatically the
+> first time if it's not cached locally. Running `docker pull` first is
+> useful when you want to grab updates (`docker pull` re-fetches the `latest`
+> tag) before restarting.
+
+Or with `docker compose`:
+
+```yaml
+# docker-compose.yml
+services:
+  image-converter:
+    image: inovector/image-converter:latest
+    restart: unless-stopped
+    ports: ["8000:8000"]
+    environment:
+      API_SECRET_KEY: change-me
+```
 
 ```bash
+docker compose up -d
+```
+
+### From source
+
+If you've cloned the repo:
+
+```bash
+# docker compose (simplest)
+API_SECRET_KEY=change-me docker compose up -d --build
+
+# or make
 make build
 make run SECRET=change-me
-```
 
-Or **plain docker**:
-
-```bash
+# or plain docker
 docker build -t image-converter .
 docker run -d --rm \
   -p 8000:8000 \

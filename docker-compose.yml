@@ -1,0 +1,20 @@
+services:
+  image-converter:
+    build: .
+    image: image-converter:latest
+    container_name: image-converter
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      API_SECRET_KEY: ${API_SECRET_KEY:-change-me}
+      # PUBLIC_BASE_URL: https://convert.example.com
+      # TOKEN_TTL_SECONDS: "600"
+      # MAX_BYTES: "26214400"
+      # WEBP_QUALITY: "85"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=2).status==200 else 1)"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s

@@ -10,3 +10,7 @@ __pycache__
 .idea
 .vscode
 README.md
+docs
+Makefile
+docker-compose.yml
+LICENSE

@@ -18,9 +18,23 @@ plus [Pillow](https://pillow.readthedocs.io/).
 
 ## Quick start
 
+With **docker compose** (simplest):
+
+```bash
+API_SECRET_KEY=change-me docker compose up -d --build
+```
+
+Or with **make**:
+
+```bash
+make build
+make run SECRET=change-me
+```
+
+Or **plain docker**:
+
 ```bash
 docker build -t image-converter .
-
 docker run -d --rm \
   -p 8000:8000 \
   -e API_SECRET_KEY=change-me \
@@ -132,6 +146,9 @@ All configuration is via environment variables:
 
 ## Operations
 
+The `Makefile` wraps the most common Docker commands. Run `make help` for the
+full list.
+
 ### Stop, rebuild, and restart
 
 After editing `server.py` or the `Dockerfile`, a running container will not
@@ -139,39 +156,30 @@ pick up the changes — you have to stop it, rebuild the image, and start a
 fresh container:
 
 ```bash
-# 1. Stop the running container (also removes it because of --rm)
-docker stop image-converter
-
-# 2. If you didn't use --rm, also delete the stopped container
-docker rm image-converter 2>/dev/null
-
-# 3. Rebuild the image (add --no-cache if you suspect stale layers)
-docker build -t image-converter .
-
-# 4. Run again
-docker run -d --rm \
-  -p 8000:8000 \
-  -e API_SECRET_KEY=change-me \
-  --name image-converter \
-  image-converter
+make rebuild SECRET=change-me      # stop, build, run in one shot
 ```
 
-One-liner for the common case:
+Or manually:
 
 ```bash
-docker stop image-converter 2>/dev/null; \
-docker build -t image-converter . && \
+docker stop image-converter
+docker build -t image-converter .
 docker run -d --rm -p 8000:8000 -e API_SECRET_KEY=change-me \
   --name image-converter image-converter
+```
+
+With docker compose:
+
+```bash
+API_SECRET_KEY=change-me docker compose up -d --build
 ```
 
 ### Diagnostics
 
 ```bash
+make logs                          # tail logs
+make shell                         # shell inside the container
 docker ps                          # is it running?
-docker logs image-converter        # what did it print?
-docker logs -f image-converter     # tail logs live
-docker exec image-converter sh     # shell inside the container
 docker rmi image-converter         # remove the image entirely
 ```
 
@@ -194,6 +202,13 @@ docker run -d --rm \
 For development or quick experiments:
 
 ```bash
+make venv                          # creates .venv and installs Pillow
+make dev SECRET=change-me          # runs server.py from the venv
+```
+
+Or manually:
+
+```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 API_SECRET_KEY=change-me python server.py
@@ -201,6 +216,23 @@ API_SECRET_KEY=change-me python server.py
 
 The server listens on `0.0.0.0:8000` by default — override with `PORT` and
 `HOST` env vars.
+
+## Project layout
+
+```
+.
+├── server.py               # the entire HTTP service (~250 lines)
+├── requirements.txt        # Pillow only
+├── Dockerfile              # python:3.12-slim, non-root, healthcheck
+├── docker-compose.yml      # one-command up
+├── Makefile                # build / run / stop / logs / dev / etc.
+├── README.md
+├── LICENSE
+├── .dockerignore
+├── .gitignore
+└── docs/
+    └── DOCKERHUB.md        # README pasted into the Docker Hub repo
+```
 
 ## Credits
 
